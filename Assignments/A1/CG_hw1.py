@@ -126,12 +126,10 @@ def applyTransforms(segments):
 
     return(tSegments)
 
-
-# 
 """ 
 Function: Apply Clipping
 Description: Clip Tranformed Lines to Window
-Arguments: tranformedSeg
+Arguments: tranformedSeg[]
 Return: clipSeg[]
 """
 def applyClip(tranformedSeg):
@@ -154,30 +152,51 @@ def applyClip(tranformedSeg):
             cropLine.append(line)
             
     for c in cropLine:
+        x0 = c[0]
+        y0 = c[1]
+        x1 = c[2]
+        y1 = c[3]
         # Check X Lower Bound
         if (x0 < xLower):
-            y0 = ((xLower - x0)/(x1-x0))(y1-y0)+y0
+            y0 = ((xLower - x0)/(x1-x0))*(y1-y0)+y0
             x0 = xLower
-
+        elif (x1 < xLower):
+            y1 = ((xLower - x1)/(x0-x1))*(y0-y1)+y1
+            x1 = xLower
         # Check Y Lower Bound
-        if (x0 < xLower):
-            y0 = ((xLower - x0)/(x1-x0))(y1-y0)+y0
-            x0 = xLower
-
+        if (y0 < yLower):
+            x0 = ((yLower - y0)/(y1-y0))*(x1-x0)+x0
+            y0 = yLower
+        elif (y1 < yLower):
+            x1 = ((yLower - y1)/(y0-y1))*(x0-x1)+x1
+            y1 = yLower
         # Check X Upper Bound
         if (x0 > xUpper):
-            y0 = ((xUpper - x0)/(x1-x0))(y1-y0)+y0
-
+            y0 = ((xUpper - x0)/(x1-x0))*(y1-y0)+y0
+            x0 = xUpper
+        elif (x1 > xUpper):
+            y1 = ((xUpper - x1)/(x0-x1))*(y0-y1)+y1
+            x1 = xUpper
         # Check Y Upper Bound
         if (y0 > yUpper):
-            y0 = ((xLower - x0)/(x1-x0))(y1-y0)+y0
-            x0 = xLower
+            x0 = ((yUpper - y0)/(y1-y0))*(x1-x0)+x0
+            y0 = yUpper
+        elif (y1 > yUpper):
+            x1 = ((yUpper - y1)/(y0-y1))*(x0-x1)+x1
+            y1 = yUpper
         
-
+        clipSeg.append([x0,y0,x1,y1])
 
     return clipSeg
 
-# Translate lines into Screen/Image Coordinates
+""" 
+Function: Apply Translation
+Description: Translate lines into Screen/Image Coordinates
+Arguments: 
+Return: tCoordinates[]
+"""
+def applyTranslation(clippedSeg):
+    return
 # Scan Convert (i.e. Draw) Clipped Lines into Software Frame Buffer
 # Write Frame Buffer to Standard out in PBM Format
 
@@ -192,6 +211,7 @@ def main():
     postLines = getSegments(inFile)
     transLines = applyTransforms(postLines)
     clippedSegs = applyClip(transLines)
+    translatedCoor = applyTranslation(clippedSegs)
       
 ##########################################################################
 main()

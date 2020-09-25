@@ -1,0 +1,349 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- saved from url=(0067)https://www.cs.drexel.edu/~david/Classes/CS430/HWs/Assignment1.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+       
+  
+  <title>HW01Lines</title>
+</head>
+  <body>
+   
+<div style="text-align: center;"><big style="font-weight: bold;"><big><big>
+ CS430 Homework Assignment 1<br>
+  <br>
+  </big></big></big>  
+<div style="text-align: left;"><span style="font-weight: bold;">
+<!-- Be sure you 
+subscribe to the class email list if you have not already done so. </span><br> -->
+<!--
+<a href="http://www.cs.unc.edu/~mcmillan/comp136/Lecture6/Lines.html">Here</a> is
+an excellent description of line drawing algorithms from <a href="http://www.cs.unc.edu/~mcmillan">Leonard McMillan</a>.<br>
+You may use the Bresenham code posted on this web page in your assignment.
+-->
+<p>
+
+<!--
+<font size=+2 color=#dd3333>You may also use the ASCII Plain PBM (for
+assignments 1 -> 4 and the Extra Credit assignment) and Plain PPM (for
+assignment 5) file formats for your output images.</font><br>
+The description of the PBM format can be found
+<a href="http://netpbm.sourceforge.net/doc/pbm.html">here</a>.<br>
+The description of the PPM format can be found
+<a href="http://netpbm.sourceforge.net/doc/ppm.html">here</a>.<br>
+Here are a 
+<a href="http://www.cs.drexel.edu/%7Edavid/Classes/CS430/HWs/gear.pbm">PBM file</a>
+and a 
+<a href="HWs/texture.ppm">PPM file</a>.<br>
+You should be able to view these images files in more image display
+programs than with the XPM format, e.g. Preview in MacOS.
+-->
+
+  </p><p>
+  Program problem:<br>
+   
+</p><ol>
+<!--
+    <li> Understand the XPM file format.          
+    <ol>
+        <li> A brief description can be found here: <a
+ href="../xpm.pdf">
+ xpm.pdf</a> (You only need chapters 1 and 2 of this document. <br>
+  The XPM format assumes that the origin (0,0) is in the upper left-hand
+corner.       </li>
+        <li> You can ignore optional parameters and only put data for "width 
+height ncolors cpp" in the first string. For example: <br>
+  /* width height num_colors chars_per_pixel */ <br>
+  "7 7 4 1"<br>
+        </li>
+        <li>Then you have "ncolors" strings associating characters with colors. 
+You can assume the color display and use "c" key. The value of color defined 
+by # followed by the RGB code in hexadecimal. For example: <br>
+  /*colors */<br>
+  "- c #ffffff",<br>
+  "# c #ffe0e0",<br>
+  "a c #ffb7b7",<br>
+  "X c #010101",<br>
+        </li>
+        <li>And last you have the "height" strings of "width" * "chars_per_pixel"
+ characters, where every "chars_per_pixel" length string must be one of the 
+previously defined groups in the "colors" section. For example: <br>
+  "X-###--",<br>
+  "-##a##-",<br>
+  "##aaa##",<br>
+  "##aaa##",<br>
+  "##aaa##",<br>
+  "-##a##-",<br>
+  "--###--" </li>
+        <li>The example images below have been enlarged, and a black border 
+was added for clarity. <br>
+          <big>/* XPM */<br>
+  static char *sco100[] = { <br>
+  /* width height num_colors chars_per_pixel */ <br>
+  "7 7 4 1", <br>
+  /* colors */ <br>
+  "- c #ffffff", <br>
+  "# c #ffe0e0", <br>
+  "a c #ffb7b7", <br>
+  "X c #010101", <br>
+  /* pixels */ <br>
+  "X-###--", <br>
+  "-##a##-", <br>
+  "##aaa##", <br>
+  "##aaa##", <br>
+  "##aaa##", <br>
+  "-##a##-", <br>
+  "--###--" <br>
+  };
+  <p>
+  <img src="image001.gif" title="" alt=""
+ style="width: 102px; height: 102px;">
+         </big><br>
+        </li>
+        <li><br>
+  Several free programs are available which can view, read, and write the
+  XPM file format. Examples of those programs are: 
+          <a href="http://www.irfanview.com/">irfanview</a> for Windows.
+You must install all the plugins to be able to work with XPM files. <a
+ href="http://gqview.sourceforge.net/">gqview</a> for Linux.
+ Your XPM files must be viewable with 'display' on tux.
+ </li>
+           
+    </ol>
+    </li>
+    <br>
+   <small><br>
+   </small>
+   -->
+    <li> Understand the PBM file format.          
+    <ol>
+        <li>The description of the Plain PBM format can be found
+<a href="http://netpbm.sourceforge.net/doc/pbm.html">here</a> (for
+assignments 1 --&gt; 4 and the Extra Credit assignment).<br>
+	</li><li>The description of the Plain PPM format can be found
+<a href="http://netpbm.sourceforge.net/doc/ppm.html">here</a> (for
+ assignment 5).
+	</li><li>Here are a 
+<a href="http://www.cs.drexel.edu/~david/Classes/CS430/HWs/gear.pbm">PBM file</a>
+and a <a href="https://www.cs.drexel.edu/~david/Classes/CS430/HWs/texture.ppm">PPM file</a>.</li>
+    </ol>
+    </li>
+   <p>
+   </p><li>Understand the Simplified Postscript file format (*.ps)<br>
+    <ol>
+   <li>The input file will be a Postscript file, but your
+ program only needs to handle the following command<br>
+   </li><li>x1 y1 x2 y2<span style="font-weight: bold;"> Line</span><br>
+   </li><li>The text of these commands will be bounded by two 
+delimiters where %%%BEGIN marks the beginning, and %%% END marks the end.<br>
+   </li><li>These tokens will both appear at the beginning of 
+the lines they occur on. <br>
+   </li><li>There may be blank lines anywhere between these
+delimiters.  <br>
+   </li><li>ALL text outside of these delimiters should be ignored
+ by your program. <br>
+   </li><li>Postscript assumes that the origin (0,0) is located
+ in the lower left corner of the window. <br>
+ </li></ol>
+   <br>
+   The purpose of using a Postscript-like format is simply to give you an 
+idea of what the input should look like before you start implementing a reader.<br>
+   You are not actually implementing a full blown postscript reader. An example
+ of the simplified format is given below:<br>
+   <br>
+   %%%BEGIN<br>
+   375 100 300 230 Line<br>
+   499 0 0 250 Line<br>
+   <br>
+   170 450 400 350 Line<br>
+   350 300 120 400 Line<br>
+   %%%END<br>
+   <br>
+   An <a href="https://www.cs.drexel.edu/~david/Classes/CS430/HWs/hw1.ps">example 
+input file</a>. This file can be used to visualize arbitrary input data, in
+our simplified format, within the world window.
+   <br>
+   A free cross-platform tool, <a href="http://www.cs.wisc.edu/~ghost/gsview/">gsview</a>, for viewing Postscript.
+ There are other known free viewers such as gv (Ghostview), <br>
+   and ggv(GNOME/GTK Ghostview).<br>
+<!--
+   Below is a sample Postscript file:<br>
+     
+<div style="text-align: center;"><img src="fig.png" title="" alt=""
+ style="width: 416px; height: 431px;">
+  <br>
+</div>
+-->
+<p>
+</p></li><li>Write a program, called CG_hw1 and in the language of your choice,
+that accepts our simplified
+Postscript-like format file as input and generates a PBM image as output.
+Example input file <a href="https://www.cs.drexel.edu/~david/Classes/CS430/HWs/hw1.ps">here</a>.<br>
+       
+  <ol>
+   <li>The only Postscript command you need to implement for this homework
+       assignment is "Line".
+   </li><li>You will have to implement the DDA or Bresenham algorithm
+ for scan-conversion of lines. 
+    </li><li>Clip your lines to the world window with the Cohen-Sutherland algorithm.
+      </li><li>The output image (screen) dimensions/resolution will be determined by the -[abcd]
+	  parameters (i.e. the size/shape of your world window).</li>
+      <li>You must handle the following command-line options. You should be
+      able to process any subset of the options in any arbitrary order.
+ *Default values that should be implemented in your code are in bold.*
+      </li><li>[-f] The next argument is the input "Postscript" file. <b>(hw1.ps)</b></li>
+      <li> [-s] This next argument is a float specifying the scaling factor
+in both dimensions about the world origin. <b>(1.0)</b></li>
+      <li>[-r] This next argument is an integer specifying the number of
+degrees for a counter-clockwise rotation about the world origin. <b>(0)</b></li>
+      <li>[-m] The next argument is an integer specifying a translation in
+the x dimension. <b>(0)</b></li>
+      <li>[-n] The next argument is an integer specifying a translation in
+the y dimension. <b>(0)</b></li>
+      <li> Assume that the objects of your scene are scaled, then rotated and finally translated in the world coordinates.</li>
+
+      <li>[-a] The next argument is an integer lower bound in the x dimension 
+of the world window <b>(0)</b></li>
+      <li>[-b] The next argument is an integer lower bound in the y dimension 
+of the world window <b>(0)</b></li>
+      <li>[-c] The next argument is an integer upper bound in the x dimension 
+of the world window <b>(499)</b></li>
+      <li>[-d] The next argument is an integer upper bound in the y dimension 
+of the world window <b>(499)</b></li>
+      <li>You may assume that a will always be less than c, and that b will always be less than d.
+      </li><li>There are no limits on the input values. They can be positive and
+          negative.
+      </li><li>Your program should print output images in the PBM file format
+to stdout (cout); debugging messages should be printed to stderr (cerr).
+      </li><li>All the pixels should be initialized to white. Draw your objects in black.</li>
+ <p>
+</p><div style="text-align: center;">
+<img src="./Assignment 1 Instructions_files/WorldView.png" title="" alt="" style="height: 500px;">
+ </div>
+ <p>
+      </p><li>Steps in assignment
+	<ol>
+	   <li>Read in line segments
+	   </li><li>Apply transformations to them in world coordinates
+	   </li><li>Clip transformed lines to window
+	   </li><li>Translate lines into screen/image coordinates
+	   </li><li>Scan convert (i.e. draw) clipped lines into software
+		frame buffer
+	   </li><li>Write frame buffer to standard out in PBM format
+	</li></ol>
+      </li><li>If the tester chooses not to enter any options and
+ thus enter <b>./CG_hw1 &gt; out.pbm</b>, your program should produce the same
+results as:
+<p>
+./CG_hw1 -f hw1.ps -a 0 -b 0 -c 499 -d 499 -s 1.0 -m 0 -n 0 -r 0 &gt; out.pbm<br>
+</p><p>
+and generate the following image. 
+<!--
+<a href="hw1a.xpm">Here is the XPM image file.</a>
+-->
+</p><p>
+<img src="./Assignment 1 Instructions_files/hw1a.gif"></p></li>
+ <li>Input/Output Example:<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i. The input was: ./CG_hw1 -f hw1.ps
+-a 0 -b 0 -c 499 -d 499 -s 0.8 -m 85 -n 25 -r 10 &gt; hw1.pbm<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ii. The output was: 
+<!--
+&nbsp;&nbsp;&nbsp;<a href="hw1b.xpm">Here is the XPM image file.</a>
+-->
+<p>
+<img src="./Assignment 1 Instructions_files/hw1b.gif"></p></li>
+ <li>Input/Output Example:<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i. The input was: ./CG_hw1 -f hw1.ps
+-s 0.5 &gt; scale.pbm<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ii. The output was: 
+<p>
+<img src="./Assignment 1 Instructions_files/hw1_scale.gif"></p></li>
+ <li>Input/Output Example:<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i. The input was: ./CG_hw1 -f hw1.ps
+-r -30  &gt; nrotate.pbm<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ii. The output was: 
+<p>
+<img src="./Assignment 1 Instructions_files/hw1_nrotate.gif"></p></li>
+ <li>Input/Output Example:<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i. The input was: ./CG_hw1 -f hw1.ps
+-m 100 -n 100  &gt; translate.pbm<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ii. The output was: 
+<p>
+<img src="./Assignment 1 Instructions_files/hw1_translate.gif"></p></li>
+ <li>Input/Output Example: (Dark border is the window boundary)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i. The input was: ./CG_hw1 -f hw1.ps
+-a 25 -b 50 -c 399 -d 399  &gt; worldwindow.pbm<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ii. The output was: 
+<p>
+<img border="4" src="./Assignment 1 Instructions_files/hw1_worldwindow.gif"></p></li>
+ <li>Input/Output Example: (Dark border is the window boundary)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i. The input was: ./CG_hw1 -f hw1.ps
+-a 25 -b 50 -c 399 -d 399 -r 30 -m 100 -n 100 -s 0.5 &gt; all.pbm<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ii. The output was: 
+<p>
+<img border="4" src="./Assignment 1 Instructions_files/hw1_all.gif"></p></li>
+    </ol>
+ <br>
+<br>
+<br>
+</li><li>Grading Scheme
+   <ol>
+     <li> Command-line argument reading : 1 point
+     </li><li> Postcript reading : 1 point
+     </li><li> Image format : 1 point
+     </li><li> Correct window/image dimensions : 1 point
+     </li><li> Line drawing : 2 points
+     </li><li> Clipping : 2 points
+     </li><li> Transformations : 2 points
+   </li></ol>
+   <p>
+</p></li><li>Submission Guidelines:<br>
+    <ol>
+       <li>Assignments must be submitted via Bb Learn.
+       </li><li>README file: explain the features of 
+your program, language and OS used, compiler or interpreter used,
+name of file containing main(), and how to compile/link your program.
+Text files only.  Word and PDF documents will NOT be accepted.
+       </li><li>All source code. Your code must compile and run
+on tux (Linux). 
+<!--
+MacOS X is a negotiable
+possibility. The TA will use one of these as the test platform.
+-->
+       </li><li>You may program in any language you like as long it can produce
+       a usable executable named CG_hw1 on tux. 
+     </li><li>Your program will be run by the TA. Please do
+NOT  submit any image files, Visual C++ project files, or anything not requested
+ in this section.  Your program  must run on tux without the
+ installation of "special" libraries.
+     </li><li>Makefile: have the default
+ rule compile your program.
+     </li><li>If you are using a language that doesn't produce an executable file,
+	e.g. python, then be sure to include a script called CG_hw1 that
+	accepts arguments and prints PBM to standard out.
+     </li><li>Points will be deducted if submission guidelines are not followed.
+     </li><li>Further details about Bb Learn
+     <ol>
+	<li>You can reach Bb Learn through DrexelOne.
+	</li><li>Choose Computer Graphics among your list of courses. There is an "assignments" link in 
+	the left frame which will give you the list of assignments in the right frame.
+	</li><li>Click on the assignment you wish to submit. 
+	</li><li>Find your file and click Upload button.
+	</li><li>Hit Submit button. DO NOT FORGET TO HIT THE SUBMIT BUTTON AFTER YOU UPLOAD ALL YOUR FILES.
+     </li></ol>
+  </li></ol>
+  </li></ol>
+   NOTE: Your source code for all programming assignments will be run through
+ a plagiarism detection system. This program uses compiler techniques which
+ are invariant of syntax and style. If you are sharing code with other classmates,
+ you will get caught. Please refer to the <a href="http://www.drexel.edu/studentlife/policies/student_handbook_03_04.html">student 
+ handbook</a> for actions that will be taken. <br>
+   </span></div>
+   </div>
+   <br>
+     
+<hr>
+
+Last modified on September 24, 2020.
+
+
+
+</body></html>

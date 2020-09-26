@@ -6,6 +6,7 @@
 
 import sys
 import math
+import bresenham
 
 # Global Variables
 inFile = 'hw1.ps'
@@ -192,13 +193,95 @@ def applyClip(tranformedSeg):
 """ 
 Function: Apply Translation
 Description: Translate lines into Screen/Image Coordinates
-Arguments: 
-Return: tCoordinates[]
+Arguments: clippedSeg[]
+Return: screenCoor[]
 """
 def applyTranslation(clippedSeg):
+    screenCoor = []
+
+    if (xLower == 0 and yLower==0):
+        screenCoor = clippedSeg
+    else:
+        for seg in clippedSeg:
+            screenCoor.append([seg[0]+xLower,seg[1]+ylower,seg[2]+xLower,seg[3]+yLower])
+
+    return(screenCoor)
+
+""" 
+Function: getPixels
+Description: Scan Lines to Determine Pixels
+Arguments: 
+Return: pixels[]
+"""
+def getPixels(rows, cols, line):
+    x = 0
+    y = 0
+    numerator = cols
+    denominator = rows
+    increment = denominator
+    pixels = []
+
+    while (y < rows):
+        pixels.append([x,y])
+        increment += numerator
+        if (increment > denominator):
+            x += 1
+            increment -= denominator
+
+    return(pixles)
+
+""" 
+Function: Draw Lines
+Description: Scan Convert (i.e. Draw) Clipped Lines into Software Frame Buffer
+Arguments: screenCoor[]
+Return: frameBuffer
+"""
+def drawLines(screenCoor):
+    frameBuffer = []
+
+    rows = yUpper - yLower + 1
+    cols = xUpper - xLower + 1
+
+    # Create "Empty" Buffer of Correct Size
+    frameBuffer.append(["P1"])
+    frameBuffer.append([str(cols) + " " + str(rows)])
+    
+    r = 0
+    c = 0
+    while (r < rows):
+        tmpRow = []
+        while(c < cols):
+            tmpRow.append(0)
+            c+=1
+        frameBuffer.append(tmpRow)
+        r+=1
+        c=0
+
+    # Get Pixels
+    pixels = []
+    for s in screenCoor:
+        pixels.append(list(bresenham.bresenham(int(s[0]),int(s[1]),int(s[2]),int(s[3]))))
+    
+    #print(pixels)
+    # Populate Buffer with Images using Bresenham Algorithm
+    for line in pixels:
+        for p in line:
+            frameBuffer[-1-(p[1])][p[0]]=1
+        
+    return frameBuffer
+
+""" 
+Function: writePBM
+Description: Write Frame Buffer to Standard out in PBM Format
+Arguments: screenBuffer
+Return: 
+"""
+def writePBM(screenBuffer):
+    for l in screenBuffer:
+        line = ' '.join([str(elem) for elem in l])
+        print(line)
+    
     return
-# Scan Convert (i.e. Draw) Clipped Lines into Software Frame Buffer
-# Write Frame Buffer to Standard out in PBM Format
 
 """ 
 Function: Main
@@ -212,6 +295,8 @@ def main():
     transLines = applyTransforms(postLines)
     clippedSegs = applyClip(transLines)
     translatedCoor = applyTranslation(clippedSegs)
+    buffer = drawLines(translatedCoor)
+    writePBM(buffer)
       
 ##########################################################################
 main()

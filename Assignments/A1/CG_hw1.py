@@ -106,15 +106,16 @@ def applyTransforms(segments):
         ])
     
     # Rotate Image
-    radAngle = math.radians(rotation)
+    radAngle = (math.radians(rotation))
     for r in sSegments:
         rSegments.append([
-            int((r[0]*(math.cos(radAngle)))-r[1]*math.sin(radAngle)),
-            int((r[0]*(math.sin(radAngle)))+r[1]*math.cos(radAngle)),
-            int((r[2]*(math.cos(radAngle)))-r[3]*math.sin(radAngle)),
-            int((r[2]*(math.sin(radAngle)))+r[3]*math.cos(radAngle))
+            int((r[0]*(math.cos(radAngle)))-(r[1]*math.sin(radAngle))),
+            int((r[0]*(math.sin(radAngle)))+(r[1]*math.cos(radAngle))),
+            int((r[2]*(math.cos(radAngle)))-(r[3]*math.sin(radAngle))),
+            int((r[2]*(math.sin(radAngle)))+(r[3]*math.cos(radAngle)))
         ])
-    
+
+
     # Translate Image
     for t in rSegments:
         tSegments.append([
@@ -172,10 +173,10 @@ def applyClip(tranformedSeg):
             y1 = yLower
         # Check X Upper Bound
         if (x0 > xUpper):
-            y0 = ((xUpper - x0)/(x1-x0))*(y1-y0)+y0
+            y0 = (((xUpper - x0)/(x1-x0))*(y1-y0)+y0)
             x0 = xUpper
         elif (x1 > xUpper):
-            y1 = ((xUpper - x1)/(x0-x1))*(y0-y1)+y1
+            y1 = (((xUpper - x1)/(x0-x1))*(y0-y1)+y1)
             x1 = xUpper
         # Check Y Upper Bound
         if (y0 > yUpper):
@@ -202,7 +203,7 @@ def applyTranslation(clippedSeg):
         screenCoor = clippedSeg
     else:
         for seg in clippedSeg:
-            screenCoor.append([seg[0]+xLower,seg[1]+ylower,seg[2]+xLower,seg[3]+yLower])
+            screenCoor.append([seg[0]+xLower,seg[1]+yLower,seg[2]+xLower,seg[3]+yLower])
 
     return(screenCoor)
 
@@ -236,15 +237,31 @@ def drawLines(screenCoor):
     # Get Pixels
     pixels = []
     for s in screenCoor:
-        pixels.append(getBresenham(int(s[0]),int(s[1]),int(s[2]),int(s[3])))
-    print(pixels[-1])
-    print(screenCoor[-1])
-    
-    #print(pixels)
+        x0 = s[0]
+        y0 = s[1]
+        x1 = s[2]
+        y1 = s[3]
+
+        if abs(y1 - y0) < abs(x1 - x0):
+            if x0 < x1:
+                pixels.append(getBresenham(x0, y0, x1, y1, 'x'))
+            else:
+                pixels.append(getBresenham(x1, y1, x0, y0, 'x'))
+        else:
+            if y0 < y1:
+                pixels.append(getBresenham(x0, y0, x1, y1, 'y'))
+            else:
+                pixels.append(getBresenham(x1, y1, x0, y0, 'y'))
+
+        #pixels.append(getBresenham(int(s[0]),int(s[1]),int(s[2]),int(s[3])))
+
     # Populate Buffer with Images using Bresenham Algorithm
     for line in pixels:
         for p in line:
-            frameBuffer[-1-(p[1])][p[0]]=1
+            try:
+                frameBuffer[-1-(p[1])][p[0]]=1
+            except IndexError:
+                continue
         
     return frameBuffer
 
@@ -254,114 +271,57 @@ Description: Use Bresenham Algortithm to scan-conversion of lines
 Arguments:
 Return: blackPixels
 """
-def getBresenham(x0, y0, x1, y1):
+def getBresenham(x0, y0, x1, y1, method):
     blackPixels = []
-    
+
     if x1 == x0:
         slope = 2 #Slope Undefined, using 2 to represent steep slope
     else:
         slope = ((y1 - y0)/(x1 - x0))
 
-    if (-1 <= slope <= 1):
-        if (x0 < x1):
-            dx = x1 - x0
-            dy = y1 - y0
-            D = 2 * dy - dx
-            y = y0
-            x = x0
-        
-            if dy < 0:
-                yi = -1
-                dy = -dy
-            else:
-                yi = 1
-        
-            while (x <= x1):
-                blackPixels.append((x,y))
-                if D <= 0:
-                    D += (2*dy)
-                else:
-                    D += (2*(dy-dx))
-                    y+=yi
-                x+=1
+    if (method == 'x'):
+        dx = x1 - x0
+        dy = y1 - y0
+        D = 2 * dy - dx
+        y = y0
+        x = x0
+    
+        if dy < 0:
+            yi = -1
+            dy = -dy
         else:
-            dx = x0 - x1
-            dy = y0 - y1
-            D = 2 * dy - dx
-            y = y1
-            x = x1
-        
-            if dy < 0:
-                yi = -1
-                dy = -dy
+            yi = 1
+    
+        while (x <= x1):
+            blackPixels.append((x,y))
+            if D <= 0:
+                D += (2*dy)
             else:
-                yi = 1
-        
-            while (x <= x0):
-                blackPixels.append((x,y))
-                if D <= 0:
-                    D += (2*dy)
-                else:
-                    D += (2*(dy-dx))
-                    y+=yi
-                x+=1
-    else:
-        if (y0 < y1):
-            dx = x1 - x0
-            dy = y1 - y0
-            D = 2 * dx - dy
-            y = y0
-            x = x0
-        
-            if dy < 0:
-                xi = -1
-                dx = -dx
-            else:
-                xi = 1
-        
-            while (y <= y1):
-                blackPixels.append((x,y))
-                if D <= 0:
-                    D += (2*dx)
-                else:
-                    D += (2*(dx-dy))
-                    x+=xi
-                y+=1
+                D += (2*(dy-dx))
+                y+=yi
+            x+=1
+    else:   
+        dx = x1 - x0
+        dy = y1 - y0
+        D = (2 * dx) - dy
+        y = y0
+        x = x0
+    
+        if dx < 0:
+            xi = -1
+            dx = -dx
         else:
-            dx = x0 - x1
-            dy = y0 - y1
-            D = 2 * dx - dy
-            y = y1
-            x = x1
-        
-            if dy < 0:
-                xi = -1
-                dx = -dx
+            xi = 1
+    
+        while (y <= y1):
+            blackPixels.append((x,y))
+            if D <= 0:
+                D += (2*dx)
             else:
-                xi = 1
-        
-            while (y <= y0):
-                blackPixels.append((x,y))
-                if D <= 0:
-                    D += (2*dx)
-                else:
-                    D += (2*(dx-dy))
-                    x+=xi
-                y+=1
-    # elif (x0 == x1) and (y0 > y1):
-    #     y = y0
-    #     x = x0
-        
-    #     while (y <= y1):
-    #         blackPixels.append((x,y))
-    #         y+=1
-    # else:
-        # y = y1
-        # x = x0
-        
-        # while (y <= y0):
-        #     blackPixels.append((x,y))
-        #     y+=1
+                x += xi
+                D += (2*(dx-dy))
+                
+            y+=1
     
     return blackPixels
 
@@ -375,7 +335,6 @@ def writePBM(screenBuffer):
     for l in screenBuffer:
         line = ' '.join([str(elem) for elem in l])
         print(line)
-    
     return
 
 """ 
@@ -391,7 +350,7 @@ def main():
     clippedSegs = applyClip(transLines)
     translatedCoor = applyTranslation(clippedSegs)
     buffer = drawLines(translatedCoor)
-    #writePBM(buffer)
+    writePBM(buffer)
       
 ##########################################################################
 main()

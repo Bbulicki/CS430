@@ -1,7 +1,8 @@
+#!/usr/bin/python3
 # Filename: CG_hw1.py
 # Description: Accept Simplified Postscript-like format file and Generate a PBM Image as Output
 # Created: 09/24/2020
-# Updated: 09/24/2020
+# Updated: 09/27/2020
 # CS430-001
 
 import sys
@@ -203,9 +204,9 @@ def applyTranslation(clippedSeg):
         screenCoor = clippedSeg
     else:
         for seg in clippedSeg:
-            screenCoor.append([seg[0]+xLower,seg[1]+yLower,seg[2]+xLower,seg[3]+yLower])
-
-    return(screenCoor)
+            screenCoor.append([seg[0]-xLower,seg[1]-yLower,seg[2]-xLower,seg[3]-yLower])
+        
+    return screenCoor 
 
 """ 
 Function: Draw Lines

@@ -17,7 +17,10 @@ Program Features:
         - Accepts Polygon Postscript file
         - Implements Sutherland-Hodgman Algorithm to clip Polygons
     - Updated Features Implemented from HW3
-        -
+        - Accept Arbitrary Number of Polygons
+        - (PERFORM FILLING)
+        - (DEFINE RESOLUTION)
+        - 
 
 Language: Python 3.8.5
 

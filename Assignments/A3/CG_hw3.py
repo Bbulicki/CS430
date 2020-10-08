@@ -9,7 +9,7 @@ import sys
 import math
 
 # Global Variables
-inFile = 'hw2_a.ps'
+inFile = 'hw3.ps'
 scaleFact = 1.0
 rotation = 0
 xTrans = 0
@@ -18,6 +18,10 @@ xLower = 0
 yLower = 0
 xUpper = 499
 yUpper = 499
+xLowerView = 0
+yLowerView = 0
+xUpperView = 200
+yUpperView = 200
 
 """ 
 Function: Set Globals
@@ -35,6 +39,10 @@ def setGlobal():
     global yLower
     global xUpper
     global yUpper
+    global xLowerView
+    global yLowerView
+    global xUpperView
+    global yUpperView
     i = 1
 
     # Read Arguments and Adjust Defaults
@@ -58,6 +66,15 @@ def setGlobal():
                 xUpper = int(sys.argv[i+1])
         elif (argStr == '-d'):      #Upper Bound of Y-Dimension World Window (Default: 499)
                 yUpper = int(sys.argv[i+1])
+        elif (argStr == '-j'):      #Lower bound of X-Dimension Viewport Window (Default: 0)
+                xLowerView = int(sys.argv[i+1])
+        elif (argStr == '-k'):      #Lower bound of Y-Dimension Viewport Window (Default: 0)
+                yLowerView = int(sys.argv[i+1])
+        elif (argStr == '-o'):      #Upper bound of X-Dimension Viewport Window (Default: 200)
+                xUpperView = int(sys.argv[i+1])
+        elif (argStr == '-p'):      #Upper bound of Y-Dimension Viewport Window (Default: 200)
+                yUpperView = int(sys.argv[i+1])
+
         i+=2
     
     return
@@ -82,15 +99,18 @@ def getLine(inFile):
             reader = False
         else:
             if ((reader == True) and (len(l.strip()) != 0)):
-                segments.append(l.strip().split(" "))
+                line = (l.strip().split(" "))
+                while "" in line:
+                    line.remove("")
+                segments.append(line)
     
     return(segments)
 
 """ 
 Function: Get Segments
-Description: Get Line Segments from "Postscript" File 
+Description: Get Line Segments for each polygon from "Postscript" File 
 Arguments: none
-Return: segments[]
+Return: polygons[]
 """
 def getSegment(rLines):
     startX = '0'
@@ -98,10 +118,12 @@ def getSegment(rLines):
     endX = '0'
     endY = '0'
     segments = []
+    polygons = []
     
     for l in range(len(rLines)):
         if rLines[l][0] == 'stroke':
-            return segments
+            polygons.append(segments)
+            segments = []
         elif rLines[l][2] == 'moveto':
             startX = rLines[l][0]
             startY = rLines[l][1]
@@ -113,6 +135,9 @@ def getSegment(rLines):
             startY = rLines[l][1]
         else:
             print("ERROR: Unhandled Line Read")
+            print(rLines[l])
+
+    return polygons
 
 """ 
 Function: Apply Transforms
@@ -342,6 +367,15 @@ def clipSuther(tranformedSeg):
     return clipSeg
 
 """ 
+Function: WorldToViewport
+Description: Map the World Window into the Viewport
+Arguments: tranformedSeg[]
+Return: clipSeg[]
+"""
+def worldToViewport():
+    return
+
+""" 
 Function: Apply Translation
 Description: Translate lines into Screen/Image Coordinates
 Arguments: clippedSeg[]
@@ -364,26 +398,27 @@ Description: Scan Convert (i.e. Draw) Clipped Lines into Software Frame Buffer
 Arguments: screenCoor[]
 Return: frameBuffer
 """
-def drawLines(screenCoor):
-    frameBuffer = []
+def drawLines(screenCoor, buffer):
+    frameBuffer = buffer
 
-    rows = yUpper - yLower + 1
-    cols = xUpper - xLower + 1
+    if frameBuffer == []:
+        rows = yUpper - yLower + 1
+        cols = xUpper - xLower + 1
 
-    # Create "Empty" Buffer of Correct Size
-    frameBuffer.append(["P1"])
-    frameBuffer.append([str(cols) + " " + str(rows)])
+        # Create "Empty" Buffer of Correct Size
+        frameBuffer.append(["P1"])
+        frameBuffer.append([str(cols) + " " + str(rows)])
     
-    r = 0
-    c = 0
-    while (r < rows):
-        tmpRow = []
-        while(c < cols):
-            tmpRow.append(0)
-            c+=1
-        frameBuffer.append(tmpRow)
-        r+=1
-        c=0
+        r = 0
+        c = 0
+        while (r < rows):
+            tmpRow = []
+            while(c < cols):
+                tmpRow.append(0)
+                c+=1
+            frameBuffer.append(tmpRow)
+            r+=1
+            c=0
 
     # Get Pixels
     pixels = []
@@ -403,8 +438,6 @@ def drawLines(screenCoor):
                 pixels.append(getBresenham(x0, y0, x1, y1, 'y'))
             else:
                 pixels.append(getBresenham(x1, y1, x0, y0, 'y'))
-
-        #pixels.append(getBresenham(int(s[0]),int(s[1]),int(s[2]),int(s[3])))
 
     # Populate Buffer with Images using Bresenham Algorithm
     for line in pixels:
@@ -477,6 +510,34 @@ def getBresenham(x0, y0, x1, y1, method):
     return blackPixels
 
 """ 
+Function: ScanFill
+Description: Fill the Polygon using Scan Filling
+Arguments: polygons[]
+Return: filledPolygons[]
+"""
+def scanfill(polygons):
+    #For each Polygon
+        #For each edge
+            #Mark each scan line that edge crosses by examining its ymin and ymax
+            
+            #if edge is horizontal
+                #ignore
+            #if ymax on scan line
+                #ignore
+            #if ymin <= y < ymax
+                #Add edge to scan line y's edge list
+            
+        #For each scan line between polygons ymin and ymax
+            #Caluculate intersections with edges on list
+            #sort intersections in x
+            #perform parity-bit scan-line filling
+            #check for double intersection special case
+        
+        #Clear scan lines' edge list
+
+    return
+
+""" 
 Function: writePBM
 Description: Write Frame Buffer to Standard out in PBM Format
 Arguments: screenBuffer
@@ -497,7 +558,8 @@ Return: None
 def main():
     setGlobal()
     readLines = getLine(inFile)
-    
+    buffer = []
+
     if len(readLines[0]) == 3:
         poly = True
         postLines = getSegment(readLines)
@@ -505,15 +567,18 @@ def main():
         poly = False
         postLines = readLines
 
-    transLines = applyTransforms(postLines)
+    for l in postLines:
+        transLines = applyTransforms(l)
 
-    if poly == True:
-        clippedSegs = clipSuther(transLines)
-    else:
-        clippedSegs = applyClip(transLines)
+        if poly == True:
+            clippedSegs = clipSuther(transLines)
+        else:
+            clippedSegs = applyClip(transLines)
     
-    translatedCoor = applyTranslation(clippedSegs)
-    buffer = drawLines(translatedCoor)
+        translatedCoor = applyTranslation(clippedSegs)
+
+        buffer = drawLines(translatedCoor,buffer)
+
     writePBM(buffer)
       
 ##########################################################################

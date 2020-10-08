@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 # Filename: CG_hw1.py
 # Description: Accept Simplified Postscript-like format file and Generate a PBM Image as Output
 # Created: 09/24/2020
@@ -9,7 +8,7 @@ import sys
 import math
 
 # Global Variables
-inFile = 'hw1.ps'
+inFile = 'hw2_a.ps'
 scaleFact = 1.0
 rotation = 0
 xTrans = 0
@@ -63,12 +62,12 @@ def setGlobal():
     return
 
 """ 
-Function: Get Segments
-Description: Get Line Segments from "Postscript" File 
+Function: GetLine
+Description: Read Line from "Postscript" File 
 Arguments: none
 Return: segments[]
 """
-def getSegments(inFile):
+def getLine(inFile):
     postFile = open(inFile, 'r')
     readlines = postFile.readlines()
     segments= []
@@ -87,18 +86,46 @@ def getSegments(inFile):
     return(segments)
 
 """ 
+Function: Get Segments
+Description: Get Line Segments from "Postscript" File 
+Arguments: none
+Return: segments[]
+"""
+def getSegment(rLines):
+    startX = '0'
+    startY = '0'
+    endX = '0'
+    endY = '0'
+    segments = []
+    
+    for l in range(len(rLines)):
+        if rLines[l][0] == 'stroke':
+            return segments
+        elif rLines[l][2] == 'moveto':
+            startX = rLines[l][0]
+            startY = rLines[l][1]
+        elif rLines[l][2] == 'lineto':
+            endX = rLines[l][0]
+            endY = rLines[l][1]
+            segments.append([startX,startY,endX,endY,'Line'])
+            startX = rLines[l][0]
+            startY = rLines[l][1]
+        else:
+            print("ERROR: Unhandled Line Read")
+
+""" 
 Function: Apply Transforms
 Description: Apply Transformations to them in World Coordinates
-Arguments: segments
+Arguments: polygon
 Return: tSegments[]
 """
-def applyTransforms(segments):
+def applyTransforms(polygon):
     sSegments = [] #List of Scaled Segments
     rSegments = [] #List of Scaled and Rotated Segments
     tSegments = [] #List of Scaled, Rotated, and Translated Segments
  
     # Scale Image
-    for s in segments:
+    for s in polygon:
         sSegments.append([
             int(int(s[0])*scaleFact),
             int(int(s[1])*scaleFact),
@@ -188,6 +215,128 @@ def applyClip(tranformedSeg):
             y1 = yUpper
         
         clipSeg.append([int(x0),int(y0),int(x1),int(y1)])
+
+    return clipSeg
+
+""" 
+Function: clipSuther
+Description: Clip Transformed Polygon using Sutherland-Hodgman Algorithm
+Arguments: tranformedSeg[]
+Return: clipSeg[]
+"""
+def clipSuther(tranformedSeg):
+    clipSeg = []
+    polyCoors = []
+
+    # Append Coordinates of Polygon
+    polyCoors.append((tranformedSeg[0][0],tranformedSeg[0][1]))
+    for s in tranformedSeg:
+        polyCoors.append((s[2],s[3]))
+    
+    clipPoly = [(xLower,yLower),(xUpper,yLower),(xUpper,yUpper),(xLower,yUpper)]
+    subPoly = polyCoors
+    
+    # Can Assume it is a closed polygon
+    # Delete first point duplicate
+    outputList = subPoly[1:]
+
+    # Complete Clipping
+    for c in range(len(clipPoly)):
+        inputList = outputList
+        outputList = []
+
+        # Declare Clipping Edge
+        clipV1 = clipPoly[c]
+        clipV2 = clipPoly[c-1]
+
+        for s in range(len(inputList)):
+            subV1 = inputList[s]
+            subV2 = inputList[s-1]
+
+            if (((clipV2[1]-clipV1[1])*(subV1[0]-clipV1[0])) >= ((clipV2[0]-clipV1[0])*(subV1[1]-clipV1[1]))):
+                # Case 1 - Both Inside
+                if (((clipV2[1]-clipV1[1])*(subV2[0]-clipV1[0])) >= ((clipV2[0]-clipV1[0])*(subV2[1]-clipV1[1]))):
+                    outputList.append(subV1)
+
+                # Case 2 - Out to IN
+                else:
+                    deltaClipX = clipV1[0] - clipV2[0]
+                    deltaClipY = clipV1[1] - clipV2[1]
+                    deltaLineX = subV1[0] - subV2[0]
+                    deltaLineY = subV1[1] - subV2[1]
+                    
+                    # Vertical Boundary
+                    if deltaClipX == 0:
+                        if deltaLineY == 0:
+                            interX = clipV1[0]
+                            interY = subV1[1]
+                        else:
+                            slopeLine = ((subV2[0]-subV1[0])/(subV2[1]-subV1[1]))
+                            slopeClip = ((clipV2[0]-clipV1[0])/(clipV2[1]-clipV1[1]))
+
+                            interY = ((((slopeLine*subV1[1])-subV1[0])-((slopeClip*clipV1[1])-clipV1[0]))/(slopeLine-slopeClip))
+                            interX = (slopeLine*interY)-((slopeLine*subV1[1])-subV1[0])
+
+                    # Horizontal Boundary
+                    else:
+                        if deltaLineX == 0:
+                            interX = subV1[0]
+                            interY = clipV1[1]
+                        else:
+                            slopeLine = ((subV2[1]-subV1[1])/(subV2[0]-subV1[0]))
+                            slopeClip = ((clipV2[1]-clipV1[1])/(clipV2[0]-clipV1[0]))
+
+                            interX = ((((slopeLine*subV2[0])-subV2[1])-((slopeClip*clipV1[0])-clipV1[1]))/(slopeLine-slopeClip))
+                            interY = (slopeLine*interX)-((slopeLine*subV1[0])-subV1[1])
+
+                    intersection=(int(interX),int(interY))
+                    outputList.append(intersection)
+                    outputList.append(subV1)
+                    
+            else:
+                # Case 3 - v1 IN to OUT
+                if (((clipV2[1]-clipV1[1])*(subV2[0]-clipV1[0])) >= ((clipV2[0]-clipV1[0])*(subV2[1]-clipV1[1]))):
+
+                    # Find Intersection
+                    deltaClipX = clipV1[0] - clipV2[0]
+                    deltaClipY = clipV1[1] - clipV2[1]
+                    deltaLineX = subV1[0] - subV2[0]
+                    deltaLineY = subV1[1] - subV2[1]
+                    
+                    # Vertical Boundary
+                    if deltaClipX == 0:
+                        if deltaLineY == 0:
+                            interX = clipV1[0]
+                            interY = subV1[1]
+                        else:
+                            slopeLine = ((subV2[0]-subV1[0])/(subV2[1]-subV1[1]))
+                            slopeClip = ((clipV2[0]-clipV1[0])/(clipV2[1]-clipV1[1]))
+
+                            interY = ((((slopeLine*subV1[1])-subV1[0])-((slopeClip*clipV1[1])-clipV1[0]))/(slopeLine-slopeClip))
+                            interX = (slopeLine*interY)-((slopeLine*subV1[1])-subV1[0])
+                    
+                    # Horizontal Boundary
+                    else:
+                        if deltaLineX == 0:
+                            interX = subV1[0]
+                            interY = clipV1[1]
+                        else:
+                            slopeLine = ((subV2[1]-subV1[1])/(subV2[0]-subV1[0]))
+                            slopeClip = ((clipV2[1]-clipV1[1])/(clipV2[0]-clipV1[0]))
+
+                            interX = ((((slopeLine*subV1[0])-subV1[1])-((slopeClip*clipV1[0])-clipV1[1]))/(slopeLine-slopeClip))
+                            interY = (slopeLine*interX)-((slopeLine*subV1[0])-subV1[1])
+
+                    intersection=(int(interX),int(interY))
+                    outputList.append(intersection)
+
+                # Case 4 - Both Outside
+                else:
+                    continue 
+
+    # Convert To Line Format (StartX, StartY, End X, EndY)
+    for l in range(len(outputList)):
+        clipSeg.append([outputList[l-1][0],outputList[l-1][1],outputList[l][0],outputList[l][1]])
 
     return clipSeg
 
@@ -346,9 +495,22 @@ Return: None
 """
 def main():
     setGlobal()
-    postLines = getSegments(inFile)
+    readLines = getLine(inFile)
+    
+    if len(readLines[0]) == 3:
+        poly = True
+        postLines = getSegment(readLines)
+    else: 
+        poly = False
+        postLines = readLines
+
     transLines = applyTransforms(postLines)
-    clippedSegs = applyClip(transLines)
+
+    if poly == True:
+        clippedSegs = clipSuther(transLines)
+    else:
+        clippedSegs = applyClip(transLines)
+    
     translatedCoor = applyTranslation(clippedSegs)
     buffer = drawLines(translatedCoor)
     writePBM(buffer)

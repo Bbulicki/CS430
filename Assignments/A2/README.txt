@@ -1,4 +1,4 @@
-README for CG_hw1
+README for CG_hw2
 Description: Accept Simplified Postscript-like format file and Generate a PBM Image as Output
 Note: I have included both an execuateable and python script.  Both Scripts have worked for me, in tux the python script needs to be called by ./CG_hw1.py
 

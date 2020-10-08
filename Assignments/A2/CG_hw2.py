@@ -1,7 +1,8 @@
-# Filename: CG_hw1.py
-# Description: Accept Simplified Postscript-like format file and Generate a PBM Image as Output
+# Filename: CG_hw2.py
+# Description: Postscript-like format file and Generate a PBM Image as Output
 # Created: 09/24/2020
-# Updated: 09/27/2020
+# Updated: 10/08/2020
+# Bjb366
 # CS430-001
 
 import sys

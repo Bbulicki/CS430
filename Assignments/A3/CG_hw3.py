@@ -9,15 +9,15 @@ import sys
 import math
 
 # Global Variables
-inFile = 'hw3.ps'
+inFile = 'hw3_split.ps'
 scaleFact = 1.0
 rotation = 0
 xTrans = 0
 yTrans = 0
 xLower = 0
 yLower = 0
-xUpper = 499
-yUpper = 499
+xUpper = 250
+yUpper = 250
 xLowerView = 0
 yLowerView = 0
 xUpperView = 200
@@ -62,9 +62,9 @@ def setGlobal():
                 xLower = int(sys.argv[i+1])
         elif (argStr == '-b'):      #Lower Bound of Y-Dimension World Window (Default: 0)
                 yLower = int(sys.argv[i+1])
-        elif (argStr == '-c'):      #Upper Bound of X-Dimension World Window (Default: 499)
+        elif (argStr == '-c'):      #Upper Bound of X-Dimension World Window (Default: 250)
                 xUpper = int(sys.argv[i+1])
-        elif (argStr == '-d'):      #Upper Bound of Y-Dimension World Window (Default: 499)
+        elif (argStr == '-d'):      #Upper Bound of Y-Dimension World Window (Default: 250)
                 yUpper = int(sys.argv[i+1])
         elif (argStr == '-j'):      #Lower bound of X-Dimension Viewport Window (Default: 0)
                 xLowerView = int(sys.argv[i+1])
@@ -183,7 +183,7 @@ def applyTransforms(polygon):
 
 """ 
 Function: Apply Clipping
-Description: Clip Tranformed Lines to Window
+Description: Clip Tranformed Lines to World Window
 Arguments: tranformedSeg[]
 Return: clipSeg[]
 """
@@ -369,25 +369,56 @@ def clipSuther(tranformedSeg):
 """ 
 Function: WorldToViewport
 Description: Map the World Window into the Viewport
-Arguments: tranformedSeg[]
-Return: clipSeg[]
+Arguments: clippedSeg[]
+Return: portSegs[]
 """
-def worldToViewport():
-    return
+def worldToViewport(clippedSeg):
+    worldOrigin = []
+    worldScale = []
+    portSegs = []
+
+    #Translate World Window to Origin
+    for c in clippedSeg:
+        worldOrigin.append([
+            int(c[0])-xLower,
+            int(c[1])-yLower,
+            int(c[2])-xLower,
+            int(c[3])-yLower
+        ])
+
+    #Scale World Window to Size of Viewport
+    for w in worldOrigin:
+        worldScale.append([
+            int(int(w[0])*((xUpperView-xLowerView)/(xUpper-xLower))),
+            int(int(w[1])*((yUpperView-yLowerView)/(yUpper-yLower))),
+            int(int(w[2])*((xUpperView-xLowerView)/(xUpper-xLower))),
+            int(int(w[3])*((yUpperView-yLowerView)/(yUpper-yLower)))
+        ])
+
+    #Translate to final position of Viewport
+    for s in worldScale:
+        portSegs.append([
+            int(s[0])+xLowerView,
+            int(s[1])+yLowerView,
+            int(s[2])+xLowerView,
+            int(s[3])+yLowerView
+        ])
+
+    return portSegs
 
 """ 
 Function: Apply Translation
 Description: Translate lines into Screen/Image Coordinates
-Arguments: clippedSeg[]
+Arguments: viewportSeg[]
 Return: screenCoor[]
 """
-def applyTranslation(clippedSeg):
+def applyTranslation(viewportSeg):
     screenCoor = []
 
     if (xLower == 0 and yLower==0):
-        screenCoor = clippedSeg
+        screenCoor = viewportSeg
     else:
-        for seg in clippedSeg:
+        for seg in viewportSeg:
             screenCoor.append([seg[0]-xLower,seg[1]-yLower,seg[2]-xLower,seg[3]-yLower])
         
     return screenCoor 
@@ -402,8 +433,8 @@ def drawLines(screenCoor, buffer):
     frameBuffer = buffer
 
     if frameBuffer == []:
-        rows = yUpper - yLower + 1
-        cols = xUpper - xLower + 1
+        rows = 501
+        cols = 501
 
         # Create "Empty" Buffer of Correct Size
         frameBuffer.append(["P1"])
@@ -443,7 +474,7 @@ def drawLines(screenCoor, buffer):
     for line in pixels:
         for p in line:
             try:
-                frameBuffer[-1-(p[1])][p[0]]=1
+                frameBuffer[-(p[1])][p[0]]=1
             except IndexError:
                 continue
         
@@ -515,9 +546,24 @@ Description: Fill the Polygon using Scan Filling
 Arguments: polygons[]
 Return: filledPolygons[]
 """
-def scanfill(polygons):
-    #For each Polygon
-        #For each edge
+def scanfill(polygons, buffer):
+    if polygons == []:
+        return
+    else:
+        ymin = polygons[0][1]
+        ymax = polygons[0][1]
+
+    #find ymin and ymax
+    for edge in polygons:
+        if edge[1] < ymin:
+            ymin = edge[1]
+        elif edge[1] > ymax:
+            ymax = edge[1]
+
+    for edge in polygons:
+        if edge[1] == edge[3]:
+            continue
+        
             #Mark each scan line that edge crosses by examining its ymin and ymax
             
             #if edge is horizontal
@@ -575,9 +621,12 @@ def main():
         else:
             clippedSegs = applyClip(transLines)
     
-        translatedCoor = applyTranslation(clippedSegs)
+        viewportSegs = worldToViewport(clippedSegs)
 
-        buffer = drawLines(translatedCoor,buffer)
+        buffer = drawLines(viewportSegs,buffer)
+
+        # if poly == True:
+        #     scanfilled = scanfill(viewportSegs,buffer)
 
     writePBM(buffer)
       

@@ -1,0 +1,216 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- saved from url=(0067)https://www.cs.drexel.edu/~david/Classes/CS430/HWs/Assignment3.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+       
+  
+  <title>HW03Polygons</title>
+</head>
+  <body>
+  <big style="font-weight: bold;"><big><big>CS430 Homework Assignment 3<br>
+  <small><small><small><br>
+  Programming Problem:<br>
+  <br>
+  </small></small></small></big></big></big><big><big><big><small><small><small>
+ 1. In this assignment you will read polygons from the input file.  The
+ polygons will be clipped to and drawn inside the viewport. They will
+ be drawn as filled polygons.
+  <p>
+  2. Modify your HW2 program to:<br>
+  </p></small></small></small></big></big></big><ol><big><big><big><small><small><small>
+<li>Read a file containing an arbitrary number of polygons.
+</li><li>Perform polygon filling (scan line algorithm, no flood filling).<br>
+</li><li> Define the resolution of your output image to be 501 x 501.
+</li><li>All the command-line options 
+implemented in HW1 should be supported,
+plus the following which implement viewport mapping.  You should be
+      able to process any subset of the options in any arbitrary order.
+      </li><li>[-j] The next argument is an integer lower bound in the x dimension 
+of the viewport window<b> (0)</b></li>
+      <li>[-k] The next argument is an integer lower bound in the y dimension 
+of the viewport window <b>(0)</b></li>
+      <li>[-o] The next argument is an integer upper bound in the x dimension 
+of the viewport window <b>(200)</b></li>
+      <li>[-p] The next argument is an integer upper bound in the y dimension 
+of the viewport window <b>(200)</b></li>
+      <li> The viewport coordinate system origin is in the lower left corner
+      of your image. The X direction is to the right, and the Y direction is up.
+      </li><li> You may assume that the viewport parameters are greater than or equal to zero, and less then or equal to 500.
+      </li><li>Map the world window into the viewport.</li>
+<li>Clipping should occur along the outer boundaries of the world window
+using the Sutherland-Hodgman algorithm from HW2.
+</li><li>Your new program should be named CG_hw3.
+<p>
+</p><div style="text-align: center;">
+<img src="./HW03Polygons_files/WorldImageView.png" height="500px">
+</div>
+<!-- <li>You do not need to address the special cases where edges and vertices
+overlap during clipping. -->
+ <p>
+      </p></li><li>Steps in assignment
+	<ol>
+	   <li>Read in polygons
+	   </li><li>Apply 2D transformations to them in world coordinates
+	   </li><li>Clip polygons to world window
+	   </li><li>Apply world-to-viewport transformation to the clipped polygons' vertices
+	   </li><li>(You can also apply the w-t-v transformation before clipping.
+	   You would then clip the transformed polygons to the viewport window)
+	   </li><li>Round polygon vertices to integers
+	   </li><li>Scan fill transformed polygons into software frame buffer
+	   </li><li>Write frame buffer to PBM file
+	</li></ol>
+ <p>
+</p></li><li>You can test your program with <a href="https://www.cs.drexel.edu/~david/Classes/CS430/HWs/hw3.ps">hw3.ps</a>.
+</li><li>If you are having problems with dangling edges from the
+concave shape or a with the overlapping edge in the "0",<br>
+<a href="https://www.cs.drexel.edu/~david/Classes/CS430/HWs/hw3_split.ps">this file</a> has broken
+the "S" into three separate polygons and the "0" into two separate
+polygons.
+</li><li>The default option set for this assignment is equivalent 
+to this command line. <br>
+ &nbsp;&nbsp;&nbsp; <b>./CG_hw3 -f hw3_split.ps -a 0 -b 0 -c 250 -d 250 -j 0 
+-k 0 -o 200 -p 200 -s 1.0 -m 0 -n 0 -r 0 &gt; out.pbm</b><br>
+</li><li>If the tester enters <b>./CG_hw3 &gt; hw3_a.pbm</b>
+ , the results should be the same as from the command line above, and
+ produce the following image.<br>
+<!-- <a href="hw3_a.xpm">Here is the XPM image file.</a><br>  -->
+ PLEASE NOTE THAT THE BORDER IS NOT PART
+ OF THE OUTPUT IMAGE. IT HAS BEEN PLACED AROUND THE IMAGE TO HIGHLIGHT THE
+ POSITION OF THE VIEWPORT WITHIN THE WINDOW.
+<p>
+</p><div style="text-align: center;">
+<img border="2" src="./HW03Polygons_files/hw3_a.gif">
+</div>
+<p>
+</p></li><li>Input/Output Example:<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i. Input:
+ ./CG_hw3 -f hw3_split.ps -a 0 -b 0 -c 500 -d 500 -j 0 -k 0 -o 500 -p 500 -s 1.0 -m 0 -n 0 -r 
+ 0 &gt; hw3_b.pbm<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ii. Output:
+<!-- <a href="hw3_b.xpm">Here is the XPM image file.</a> -->
+<p>
+</p><div style="text-align: center;">
+<img border="2" src="./HW03Polygons_files/hw3_b.gif">
+</div>
+<p>
+</p></li><li>Input/Output Example:<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i. Input:
+ <!-- ./CG_hw3 -f hw3_split.ps -a 110 -b 0 -c 410 -d 500 -j 0 -k 110 -o 500 -p 410 -s 1 -m 0 -n 0
+ -r 0 > hw3.xpm  -->
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i. Input:
+ ./CG_hw3 -f hw3_split.ps -a 50 -b 0 -c 325 -d 500 -j 0 -k 110 -o 480 -p 410 -s 1 -m 0 -n 0 -r 0 &gt; hw3_c.pbm<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ii. Output:
+<!-- <a href="hw3_c.xpm">Here is the XPM image file.</a> -->
+<p>
+</p><div style="text-align: center;">
+<img border="2" src="./HW03Polygons_files/hw3_c.gif">
+</div>
+<p>
+</p></li><li>Input/Output Example:<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i. Input:
+ ./CG_hw3 -f hw3_split.ps -a 10 -b 10 -c 550 -d 400 -j 10 -k 10 -o 500 -p 400 -s 1.2 -m 6 -n 25 -r 8 &gt; hw3_d.pbm<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ii. Output:
+<!-- <a href="hw3_d.xpm">Here is the XPM image file.</a>  -->
+<p>
+</p><div style="text-align: center;">
+<img border="2" src="./HW03Polygons_files/hw3_d.gif">
+</div>
+<p>
+</p></li><li>Input/Output Example:<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i. Input:
+ ./CG_hw3 -b 62 -c 500 -d 479 -r 75 -j 139 -o 404 -p 461 -s .85 -m 300 &gt; hw3_e.pbm<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ii. Output:
+<p>
+</p><div style="text-align: center;">
+<img border="2" src="./HW03Polygons_files/hw3_e.gif">
+</div>
+<p>
+</p></li><li>Input/Output Example:<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i. Input:
+ ./CG_hw3 -a 275 -b 81 -c 550 -d 502 -r -37 -j 123 -k 217 -o 373 -p 467 &gt; hw3_f.pbm<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ii. Output:
+<p>
+</p><div style="text-align: center;">
+<img border="2" src="./HW03Polygons_files/hw3_f.png">
+</div>
+<p>
+</p></li><li>Input/Output Example:<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i. Input:
+ ./CG_hw3 -d 301 -c 435 -b 170 -a -100 -r -23 &gt; hw3_g.pbm<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ii. Output:
+<p>
+</p><div style="text-align: center;">
+<img border="2" src="./HW03Polygons_files/hw3_ex7.png">
+</div>
+<p>
+</p></li></small></small></small></big></big></big><li><big><big><big><small><small><small>Input/Output Example:<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i. Input:
+ ./CG_hw3 -a -135 -b -53 -c 633 -d 842 -m -23 -j 101 -p 415 -s 3.6 &gt; hw3_h.pbm<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ii. Output:
+<p>
+</p><div style="text-align: center;">
+<img border="2" src="./HW03Polygons_files/hw3_g.png">
+</div>
+<p>
+3. Grading Scheme
+   </p><ol>
+     <li> Previous features : 2 points
+     <ul>
+	<li> Clipping operations
+	</li><li> Transformations
+	</li><li> Windowing
+     </li></ul>
+     </li><li> Input file reading : 1 point
+     </li><li> Viewport mapping: 2 points
+     </li><li> Polygon filling : 5 points
+   </li></ol>
+   </small></small></small></big></big></big><p><big><big><big><small><small><small>
+  </small></small></small></big></big></big>4. Submission Guidelines:<br>
+    </p><ol>
+       <li>Assignments must be submitted via Bb Learn.
+       </li><li>README file: explain the features of 
+your program, language and OS used, compiler or interpreter used,
+name of file containing main(), and how to compile/link your program.
+Text files only.  Word and PDF documents will NOT be accepted.
+       </li><li>All source code. Your code must compile and run
+on tux (Linux). 
+<!-- MacOS X is a negotiable
+possibility. The TA will use one of these as the test platform.
+-->
+       </li><li>You may program in any language you like as long it can produce
+       a usable executable named CG_hw3 on tux. 
+     </li><li>Your program will be run by the TA. Please do
+NOT  submit any image files, Visual C++ project files, or anything not requested
+ in this section.  Your program  must run on tux without the
+ installation of "special" libraries.
+     </li><li>Makefile: have the default
+ rule compile your program.
+     </li><li>If you are using a language that doesn't produce an executable file,
+	e.g. python, then be sure to include a script called CG_hw3 that
+	accepts arguments and prints PBM to standard out.
+     </li><li>Points will be deducted if submission guidelines are not followed.
+     </li><li>Further details about Bb Learn
+     <ol>
+	<li>You can reach Bb Learn through DrexelOne.
+	</li><li>Choose Computer Graphics among your list of courses. There is an "assignments" link in 
+	the left frame which will give you the list of assignments in the right frame.
+	</li><li>Click on the assignment you wish to submit. 
+	</li><li>Find your file and click Upload button.
+	</li><li>Hit Submit button. DO NOT FORGET TO HIT THE SUBMIT BUTTON AFTER YOU UPLOAD ALL YOUR FILES.
+     </li></ol>
+  </li></ol>
+  <br>
+  NOTE: Your source code for all programming assignments will be run through 
+a plagiarism detection system. This program uses compiler techniques which 
+are invariant of syntax and style. If you are sharing code with other classmates, 
+you will get caught. Please refer to the <a href="http://www.drexel.edu/studentlife/policies/student_handbook_03_04.html">student
+ handbook</a> for actions that will be taken. <br>
+  <big><big><big><small><small><small><br>
+  </small></small></small></big></big></big><big style="font-weight: bold;"><big><big><small><small><small></small></small></small></big></big></big>
+   
+<hr>
+
+Last modified on September 24, 2020.
+
+
+
+</li></ol></body></html>

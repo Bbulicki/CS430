@@ -547,41 +547,49 @@ Arguments: polygons[]
 Return: filledPolygons[]
 """
 def scanfill(polygons, buffer):
-    if polygons == []:
-        return
-    else:
-        ymin = polygons[0][1]
-        ymax = polygons[0][1]
 
-    #find ymin and ymax
-    for edge in polygons:
-        if edge[1] < ymin:
-            ymin = edge[1]
-        elif edge[1] > ymax:
-            ymax = edge[1]
+    for polygon in polygons:
+        ymin = polygon[0][1]
+        ymax = polygon[0][1]
 
-    for edge in polygons:
-        if edge[1] == edge[3]:
-            continue
-        
-            #Mark each scan line that edge crosses by examining its ymin and ymax
+        # Find ymin and ymax of polygon
+        for edge in polygon:
+            edgeList = []
+            if edge[1] < ymin:
+                ymin = edge[1]
+            elif edge[1] > ymax:
+                ymax = edge[1]
+
+        # Create line list to add edges too
+        scanlist = list((ymax-ymin))
+
+        for edge in polygon:
+            if edge[1] == edge[3]:  # If edge is horizontal
+                continue
+            elif edge[1] == ymax:   # If ymax on scan-line
+                continue
+            elif ymin <= edge[1] <= ymax
+
+
+
+    #         #Mark each scan line that edge crosses by examining its ymin and ymax
             
-            #if edge is horizontal
-                #ignore
-            #if ymax on scan line
-                #ignore
-            #if ymin <= y < ymax
-                #Add edge to scan line y's edge list
+    #         #if edge is horizontal
+    #             #ignore
+    #         #if ymax on scan line
+    #             #ignore
+    #         #if ymin <= y < ymax
+    #             #Add edge to scan line y's edge list
             
-        #For each scan line between polygons ymin and ymax
-            #Caluculate intersections with edges on list
-            #sort intersections in x
-            #perform parity-bit scan-line filling
-            #check for double intersection special case
+    #     #For each scan line between polygons ymin and ymax
+    #         #Caluculate intersections with edges on list
+    #         #sort intersections in x
+    #         #perform parity-bit scan-line filling
+    #         #check for double intersection special case
         
-        #Clear scan lines' edge list
+    #     #Clear scan lines' edge list
 
-    return
+    # return
 
 """ 
 Function: writePBM
@@ -605,6 +613,7 @@ def main():
     setGlobal()
     readLines = getLine(inFile)
     buffer = []
+    viewportPoly = []
 
     if len(readLines[0]) == 3:
         poly = True
@@ -622,13 +631,17 @@ def main():
             clippedSegs = applyClip(transLines)
     
         viewportSegs = worldToViewport(clippedSegs)
+        
+        if viewportSegs != [] and poly == True:
+            viewportPoly.append(viewportSegs)
 
         buffer = drawLines(viewportSegs,buffer)
 
-        # if poly == True:
-        #     scanfilled = scanfill(viewportSegs,buffer)
-
-    writePBM(buffer)
+        
+    if poly == True:
+                scanfilled = scanfill(viewportPoly,buffer)
+    
+    #writePBM(buffer)
       
 ##########################################################################
 main()
